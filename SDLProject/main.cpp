@@ -2,35 +2,35 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-#define CIRCLE_RADIUS 20  // Radius of the circle
-#define SPEED 5  // Speed of circle movement per frame
+#define CIRCLE_RADIUS 20  
+#define SPEED 5 
 
-static SDL_Window* window = NULL;  // Pointer to the SDL window
-static SDL_Renderer* renderer = NULL;  // Pointer to the SDL renderer
-static int circle_x = 320, circle_y = 240;  // Initial position of the circle
+static SDL_Window* window = NULL;  
+static SDL_Renderer* renderer = NULL; 
 
-/* Initializes SDL, creates a window, and sets up the renderer. */
+
+
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
     SDL_SetAppMetadata("Movable Circle", "1.0", "com.example.movable-circle");
 
-    if (!SDL_Init(SDL_INIT_VIDEO)) {  // Initialize SDL video subsystem
+    if (!SDL_Init(SDL_INIT_VIDEO)) {  
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
-    // Create an SDL window and renderer
+
     if (!SDL_CreateWindowAndRenderer("Movable Circle", 640, 480, 0, &window, &renderer)) {
         SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
-    return SDL_APP_CONTINUE;  // Continue running the application
+    return SDL_APP_CONTINUE;  
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
-    if (event->type == SDL_EVENT_QUIT) {  // If the user attempts to quit
+    if (event->type == SDL_EVENT_QUIT) {  
         return SDL_APP_SUCCESS;
     }
     return SDL_APP_CONTINUE;
@@ -52,6 +52,7 @@ void DrawCircle(SDL_Renderer* renderer, int cx, int cy, int radius)
 
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
+    static double circle_x = 320, circle_y = 240;  // Initial position of the circle
     const bool* state = SDL_GetKeyboardState(NULL);  //returns pointer to array of key states
 
     //macros to check what the key states are and adjust the speed accordingly
