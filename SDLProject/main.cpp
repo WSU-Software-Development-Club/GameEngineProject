@@ -1,69 +1,81 @@
-/* clear.c ... */
-
-/*
- * This example code creates an SDL window and renderer, and then clears the
- * window to a different color every frame, so you'll effectively get a window
- * that's smoothly fading between colors.
- *
- * This code is public domain. Feel free to use it for any purpose!
- */
-
-#define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
+#define SDL_MAIN_USE_CALLBACKS 1  /* Use the SDL callback system instead of main() */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
- /* We will use this renderer to draw into this window every frame. */
-static SDL_Window* window = NULL;
-static SDL_Renderer* renderer = NULL;
+#define CIRCLE_RADIUS 20  // Radius of the circle
+#define SPEED 5  // Speed of circle movement per frame
 
-/* This function runs once at startup. */
+static SDL_Window* window = NULL;  // Pointer to the SDL window
+static SDL_Renderer* renderer = NULL;  // Pointer to the SDL renderer
+static int circle_x = 320, circle_y = 240;  // Initial position of the circle
+
+/* Initializes SDL, creates a window, and sets up the renderer. */
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
-    SDL_SetAppMetadata("Example Renderer Clear", "1.0", "com.example.renderer-clear");
+    SDL_SetAppMetadata("Movable Circle", "1.0", "com.example.movable-circle");
 
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {  // Initialize SDL video subsystem
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
-    if (!SDL_CreateWindowAndRenderer("examples/renderer/clear", 640, 480, 0, &window, &renderer)) {
+    // Create an SDL window and renderer
+    if (!SDL_CreateWindowAndRenderer("Movable Circle", 640, 480, 0, &window, &renderer)) {
         SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
-    return SDL_APP_CONTINUE;  /* carry on with the program! */
+    return SDL_APP_CONTINUE;  // Continue running the application
 }
 
-/* This function runs when a new event (mouse input, keypresses, etc) occurs. */
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
-    if (event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
+    if (event->type == SDL_EVENT_QUIT) {  // If the user attempts to quit
+        return SDL_APP_SUCCESS;
     }
-    return SDL_APP_CONTINUE;  /* carry on with the program! */
+    return SDL_APP_CONTINUE;
 }
 
-/* This function runs once per frame, and is the heart of the program. */
+//method to draw a cricle of a given radius at point x and y
+void DrawCircle(SDL_Renderer* renderer, int cx, int cy, int radius)
+{
+    for (int w = 0; w < radius * 2; w++) {
+        for (int h = 0; h < radius * 2; h++) {
+            int dx = radius - w;
+            int dy = radius - h;
+            if ((dx * dx + dy * dy) <= (radius * radius)) {  // Check if point is within circle boundary
+                SDL_RenderPoint(renderer, cx + dx, cy + dy);  // Draw point at (cx + dx, cy + dy)
+            }
+        }
+    }
+}
+
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
-    const double now = ((double)SDL_GetTicks()) / 1000.0;  /* convert from milliseconds to seconds. */
-    /* choose the color for the frame we will draw. The sine wave trick makes it fade between colors smoothly. */
-    const float red = (float)(0.5 + 0.5 * SDL_sin(now));
-    const float green = (float)(0.5 + 0.5 * SDL_sin(now + SDL_PI_D * 2 / 3));
-    const float blue = (float)(0.5 + 0.5 * SDL_sin(now + SDL_PI_D * 4 / 3));
-    SDL_SetRenderDrawColorFloat(renderer, red, green, blue, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
+    const bool* state = SDL_GetKeyboardState(NULL);  //returns pointer to array of key states
 
-    /* clear the window to the draw color. */
+    //macros to check what the key states are and adjust the speed accordingly
+    if (state[SDL_SCANCODE_W]) circle_y -= SPEED;  
+    if (state[SDL_SCANCODE_S]) circle_y += SPEED;  
+    if (state[SDL_SCANCODE_A]) circle_x -= SPEED;  
+    if (state[SDL_SCANCODE_D]) circle_x += SPEED;  
+
+    // make background black
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
 
-    /* put the newly-cleared rendering on the screen. */
+    //draw the circle
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+    DrawCircle(renderer, circle_x, circle_y, CIRCLE_RADIUS);
+
+    //draw the frame
     SDL_RenderPresent(renderer);
 
-    return SDL_APP_CONTINUE;  /* carry on with the program! */
+    return SDL_APP_CONTINUE;  
 }
 
-/* This function runs once at shutdown. */
+
 void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
-    /* SDL will clean up the window/renderer for us. */
+    /* SDL automatically cleans up the window and renderer. */
 }
